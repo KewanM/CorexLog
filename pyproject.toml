@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cortexlog"
+version = "0.1.0"
+description = "CLI assistant that turns free-form text into structured notes, tasks, and events."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.68.2",
+  "python-dotenv>=1.0.1",
+  "typer>=0.15.2",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+namespaces = true
+include = ["cortexlog*"]
