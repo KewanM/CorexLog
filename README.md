@@ -137,12 +137,25 @@ git push origin feature/feature-name
 
 Then open a Pull Request and merge only after CI passes.
 
+SSH setup for GitHub:
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+pbcopy < ~/.ssh/id_ed25519.pub
+ssh -T git@github.com
+git remote set-url origin git@github.com:KewanM/CorexLog.git
+```
+
 ## CI Pipeline
 
 GitHub Actions runs on:
 
 - every push to `main`
+- every push to `develop`
 - every Pull Request targeting `main`
+- every Pull Request targeting `develop`
 
 The workflow:
 
@@ -150,7 +163,7 @@ The workflow:
 - installs dependencies
 - runs `flake8 .`
 - runs `pytest`
-- builds the project with `python -m build`
+- runs the build placeholder step
 
 ## Branch Protection
 

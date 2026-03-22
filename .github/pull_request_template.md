@@ -2,7 +2,7 @@
 Describe what this PR does.
 
 ## Type of change
-- [ ] New feature
+- [ ] Feature
 - [ ] Bug fix
 - [ ] Refactor
 - [ ] Test
