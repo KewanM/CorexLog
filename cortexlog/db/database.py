@@ -9,7 +9,7 @@ from typing import Iterator
 
 
 LOGGER = logging.getLogger(__name__)
-DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "cortexlog.db"
+DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "database" / "cortexlog.db"
 
 
 SCHEMA_STATEMENTS = (
@@ -43,6 +43,20 @@ SCHEMA_STATEMENTS = (
         raw_text TEXT NOT NULL,
         ai_json TEXT NOT NULL,
         created_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS entries (
+        id INTEGER PRIMARY KEY,
+        timestamp TEXT NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        original_text TEXT NOT NULL,
+        enhanced_text TEXT NOT NULL,
+        final_version_saved TEXT NOT NULL
+            CHECK(final_version_saved IN ('original', 'enhanced', 'both')),
+        tags TEXT,
+        status TEXT NOT NULL CHECK(status IN ('draft', 'saved', 'cancelled'))
     )
     """,
 )

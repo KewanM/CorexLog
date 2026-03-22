@@ -18,3 +18,5 @@ exports/
 build/
 dist/
 *.egg-info/
+database/*.db
+logs/system/system_log.txt

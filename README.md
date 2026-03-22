@@ -14,6 +14,11 @@ User -> CLI -> Services -> Database -> CLI Output
 
 Responsibilities are separated across:
 
+- `app/intent_classifier.py`: category detection from title and content
+- `app/text_enhancer.py`: rewrite suggestions across enhancement modes
+- `app/confirmation_prompt.py`: confirmation gate before anything is saved
+- `app/storage_manager.py`: routing entries into structured folders and SQLite
+- `app/logger.py`: system action logging
 - `cortexlog/cli/commands.py`: Typer CLI commands and output formatting
 - `cortexlog/ai/processor.py`: OpenAI integration, JSON parsing, validation, and raw log persistence
 - `cortexlog/services/`: business logic for notes, tasks, events, and today views
@@ -29,14 +34,44 @@ Responsibilities are separated across:
 │   └── workflows/
 │       └── ci.yml
 ├── app/
+├── database/
 ├── cortexlog/
+├── logs/
 ├── tests/
 ├── requirements.txt
 ├── pyproject.toml
 └── README.md
 ```
 
-Application code remains in the `cortexlog/` package:
+Application code is split between the `app/` workflow modules and the `cortexlog/` CLI package:
+
+```text
+app/
+├── confirmation_prompt.py
+├── intent_classifier.py
+├── logger.py
+├── storage_manager.py
+└── text_enhancer.py
+```
+
+```text
+logs/
+├── diary/
+├── book/
+├── tasks/
+├── ideas/
+├── events/
+├── goals/
+├── notes/
+└── system/
+```
+
+```text
+database/
+└── cortexlog.db
+```
+
+Existing CLI and service code remains in the `cortexlog/` package:
 
 ```text
 cortexlog/
@@ -78,17 +113,27 @@ python -m cortexlog.main --help
 Example commands:
 
 ```bash
-python -m cortexlog.main write "Tomorrow call John at 3pm and finish the report"
+python -m cortexlog.main write "Today was a hard day at work but I learned a lot" --title diary --mode emotional
+python -m cortexlog.main write "Draft a roadmap for the analytics feature" --title idea --mode professional
 python -m cortexlog.main tasks
 python -m cortexlog.main today
 python -m cortexlog.main notes
 ```
 
+`write` now:
+
+- detects the entry category from the title or text
+- generates an enhanced version before saving
+- asks for confirmation before saving anything
+- supports `professional`, `emotional`, `motivational`, `technical`, and `storytelling` modes
+- stores entries in the matching `logs/` folder and in SQLite
+
 ## Data Storage
 
-- SQLite database file: `cortexlog.db`
-- Log file: `cortexlog.log`
-- Raw AI input/output audit table: `raw_logs`
+- SQLite database file: `database/cortexlog.db`
+- Legacy CLI log file: `cortexlog.log`
+- System action log file: `logs/system/system_log.txt`
+- Structured writing entries table: `entries`
 
 ## AI JSON Contract
 
@@ -176,6 +221,10 @@ Enable these GitHub branch protection rules for `main`:
 
 ## Notes
 
+- `write` never persists anything until the user confirms the save choice.
+- Saved entries retain both original and enhanced text in SQLite, with the final save mode recorded.
+- Each saved entry is routed into the correct category folder under `logs/`.
+- Each save or cancel action is written to `logs/system/system_log.txt`.
 - The CLI initializes the database automatically before each command.
 - Both the user's raw text and the validated AI JSON are always stored in `raw_logs`.
 - `today` shows open tasks due today and events scheduled today.
