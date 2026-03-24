@@ -19,4 +19,5 @@ build/
 dist/
 *.egg-info/
 database/*.db
+logs/**/*.txt
 logs/system/system_log.txt
