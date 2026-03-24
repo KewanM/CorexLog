@@ -99,7 +99,7 @@ class StorageManager:
     def _build_file_path(self, *, category: str, title: str, timestamp: datetime) -> Path:
         folder_name = CATEGORY_DIRECTORIES[category]
         slug = self._slugify(title or f"{category}-entry")
-        filename = f"{timestamp.strftime('%Y%m%d-%H%M%S')}-{slug}.md"
+        filename = f"{timestamp.strftime('%Y-%m-%d')}_{slug}.txt"
         return self.logs_root / folder_name / filename
 
     def _build_file_content(

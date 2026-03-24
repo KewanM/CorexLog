@@ -6,11 +6,8 @@ from pathlib import Path
 
 import typer
 
-from app.confirmation_prompt import EntryPreview, confirmation_prompt
-from app.intent_classifier import intent_classifier
-from app.logger import system_action_logger
 from app.storage_manager import storage_manager
-from app.text_enhancer import SUPPORTED_MODES, text_enhancer
+from app.write import run_write_flow
 from cortexlog.db.database import database_manager
 from cortexlog.services.events_service import events_service
 from cortexlog.services.notes_service import notes_service
@@ -50,68 +47,11 @@ def write(
         "professional",
         "--mode",
         "-m",
-        help="Enhancement mode: professional, emotional, motivational, technical, storytelling.",
+        help="Enhancement mode: professional, diary, storytelling, motivational, technical.",
     ),
 ) -> None:
     """Write a free-form entry, review an enhanced version, and confirm before saving."""
-    current_title = title.strip()
-    current_text = text.strip()
-    normalized_mode = mode.strip().lower()
-
-    if not current_text:
-        typer.secho("Entry text cannot be empty.", fg=typer.colors.RED)
-        raise typer.Exit(code=1)
-
-    if normalized_mode not in SUPPORTED_MODES:
-        typer.secho(
-            f"Unsupported mode '{mode}'. Choose from: {', '.join(sorted(SUPPORTED_MODES))}.",
-            fg=typer.colors.RED,
-        )
-        raise typer.Exit(code=1)
-
-    while True:
-        intent = intent_classifier.classify(current_title, current_text)
-        enhanced = text_enhancer.enhance(
-            current_text,
-            mode=normalized_mode,
-            category=intent.key,
-        )
-        preview = EntryPreview(
-            category_label=intent.label,
-            title=current_title or _derive_title(current_text, intent.label),
-            original_text=current_text,
-            enhanced_text=enhanced.text,
-            mode=enhanced.mode,
-        )
-        choice = confirmation_prompt.ask(preview)
-
-        if choice == "edit":
-            current_title = typer.prompt("Update title", default=preview.title).strip()
-            current_text = typer.prompt("Update text", default=current_text).strip()
-            continue
-
-        if choice == "cancel":
-            system_action_logger.log_action("cancel", intent.key, preview.title, "cancel")
-            typer.secho("Entry cancelled. Nothing was saved.", fg=typer.colors.YELLOW)
-            return
-
-        saved_entry = storage_manager.save_entry(
-            category=intent.key,
-            title=preview.title,
-            original_text=current_text,
-            enhanced_text=enhanced.text,
-            final_version_saved=choice,
-            tags=intent.tags,
-        )
-        system_action_logger.log_action("create", intent.key, preview.title, choice)
-        typer.secho(
-            (
-                f"Saved {intent.label} entry as {choice}. "
-                f"File: {saved_entry.file_path}"
-            ),
-            fg=typer.colors.GREEN,
-        )
-        return
+    run_write_flow(text=text, title=title, mode=mode)
 
 
 @app.command()
@@ -183,9 +123,3 @@ def export_csv(output_dir: str = "exports") -> None:
     typer.secho(f"Exported CSV files to {export_dir}", fg=typer.colors.GREEN)
     for label, file_path in exported_files.items():
         typer.echo(f"{label}: {file_path}")
-
-
-def _derive_title(text: str, fallback_label: str) -> str:
-    first_line = text.strip().splitlines()[0] if text.strip() else ""
-    shortened = first_line[:60].strip()
-    return shortened or f"{fallback_label} Entry"

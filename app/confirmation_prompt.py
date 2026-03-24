@@ -29,9 +29,6 @@ class ConfirmationPrompt:
 
     def ask(self, preview: EntryPreview) -> SaveChoice:
         typer.echo(f"Detected category: {preview.category_label}")
-        if preview.title:
-            typer.echo(f"Title: {preview.title}")
-        typer.echo(f"Enhancement mode: {preview.mode.title()}")
         typer.echo("")
         typer.echo("Original text:")
         typer.echo(preview.original_text)
@@ -39,12 +36,13 @@ class ConfirmationPrompt:
         typer.echo("Enhanced version:")
         typer.echo(preview.enhanced_text)
         typer.echo("")
-        typer.echo("Do you want to save this entry?")
+        typer.echo("What would you like to do?")
         typer.echo("[1] Save original only")
         typer.echo("[2] Save enhanced version")
         typer.echo("[3] Save both")
         typer.echo("[4] Edit again")
         typer.echo("[5] Cancel")
+        typer.echo("----------")
 
         while True:
             choice = typer.prompt("Select an option", default="3").strip()
